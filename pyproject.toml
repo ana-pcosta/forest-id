@@ -11,9 +11,12 @@ requires-python = ">=3.10"
 # Project dependencies
 dependencies = [
     "pandas>=2.0.0",
-    "numpy>=1.23.0",
+    "numpy>=1.23.0,<2",
     "python-dotenv",
     "pyyaml",
+    "torch @ https://download.pytorch.org/whl/cu118/torch-2.1.0%2Bcu118-cp311-cp311-linux_x86_64.whl",
+    "torchvision @ https://download.pytorch.org/whl/cu118/torchvision-0.16.0%2Bcu118-cp311-cp311-linux_x86_64.whl",
+    "torchaudio @ https://download.pytorch.org/whl/cu118/torchaudio-2.1.0%2Bcu118-cp311-cp311-linux_x86_64.whl"
 ]
 
 
@@ -22,7 +25,10 @@ packages = ["forestid"]
 
 [project.optional-dependencies]
 dev = [
+    "scikit-learn",
+    "tqdm",
     "matplotlib",
+    "seaborn",
     "jupyter",
     "ipykernel",
     "pytest",
