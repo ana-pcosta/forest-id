@@ -1,0 +1,9 @@
+channels:
+  - conda-forge
+  - pytorch
+  - nvidia/label/cuda-11.8.0
+dependencies:
+  - cuda-nvcc
+  - cudatoolkit
+  - pip
+  - python=3.11

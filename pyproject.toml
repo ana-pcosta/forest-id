@@ -1,0 +1,41 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "forestid"
+version = "0.1.0"
+description = "Training and evaluating models for environment characterization"
+readme = "README.md"
+requires-python = ">=3.10"
+# Project dependencies
+dependencies = [
+    "pandas>=2.0.0",
+    "numpy>=1.23.0",
+    "python-dotenv",
+    "pyyaml",
+]
+
+
+[tool.setuptools]
+packages = ["forestid"]
+
+[project.optional-dependencies]
+dev = [
+    "matplotlib",
+    "jupyter",
+    "ipykernel",
+    "pytest",
+    "flake8",
+    "black",
+]
+
+# Black formatter configuration
+[tool.black]
+line-length = 88
+target-version = ['py38']
+
+# Ruff linter configuration
+[tool.ruff]
+line-length = 88
+target-version = "py38"
