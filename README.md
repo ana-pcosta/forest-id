@@ -1,6 +1,6 @@
 ## 🚀 Model Deployment
 ### Local
-To launch a frontend that generates images with the trained model, use the ```make launch-local``` command.
+To launch a frontend that classifies images with the trained model, use the ```make launch-local``` command.
 
 ### Production
 In order to deploy a system like this into production, the most important considerations would be:
