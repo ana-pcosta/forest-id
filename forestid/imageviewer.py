@@ -89,14 +89,20 @@ def plot_metadata_distribution(
     plt.show()
 
 
-def plot_random_predictions(df: pd.DataFrame, n=9):
+def plot_random_predictions(df: pd.DataFrame, n=9, missclassified=True):
     # Create a figure with multiple subplots
+
+    if missclassified:
+        df = df[df["gt"] != df["prediction"]]
+        n = min([len(df), n])
+
     num_cols = n
     num_rows = math.ceil(num_cols / 3)
     fig, axes = plt.subplots(
         num_rows, min(num_cols, 3), figsize=(6 * min(num_cols, 3), 6 * num_rows)
     )
 
+    print(num_cols, num_rows)
     # Select a random row
     random_row = df.sample(n)
 
@@ -114,7 +120,7 @@ def plot_random_predictions(df: pd.DataFrame, n=9):
 
         info_text = (
             f"Image ID: {random_row['image_id'].values[i]}\n"
-            f"Species: {random_row['species'].values[i]}\n"
+            f"GT: {random_row['gt'].values[i]}\n"
             f"Prediction: {random_row['prediction'].values[i]}\n"
         )
 
@@ -149,4 +155,16 @@ def plot_confusion_matrix(df: pd.DataFrame, confusion_matrix):
     plt.xlabel("Predicted Labels")
     plt.ylabel("True Labels")
     plt.title("Confusion Matrix")
+    plt.show()
+
+
+def plot_train_losses(train_losses: list, val_losses: list):
+    plt.figure(figsize=(8, 5))
+    plt.plot(train_losses, label="Train Loss", marker="o")
+    plt.plot(val_losses, label="Validation Loss", marker="o")
+    plt.xlabel("Epochs")
+    plt.ylabel("Loss")
+    plt.title("Training & Validation Loss")
+    plt.legend()
+    plt.grid(True)
     plt.show()

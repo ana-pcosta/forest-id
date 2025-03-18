@@ -30,10 +30,27 @@ class ModelHandler:
         model = model.to(self.device)
         return model
 
-    def train(self, model, train_loader, val_loader, num_epochs: int, lr: float):
+    def train(
+        self,
+        model,
+        train_loader,
+        val_loader,
+        num_epochs: int,
+        lr: float,
+        class_weights: list = None,
+        patience: int = 10,  # Early stopping patience
+        save_path: str = "best_model.pth",  # Model save path
+    ):
         # Define loss function and optimizer
-        criterion = nn.CrossEntropyLoss()
-        optimizer = optim.Adam(model.parameters(), lr=1e-4)
+        if class_weights is not None:
+            class_weights = class_weights.to(self.device)
+        criterion = nn.CrossEntropyLoss(class_weights)
+        optimizer = optim.Adam(model.parameters(), lr=lr)
+        train_losses = []
+        val_losses = []
+
+        best_val_loss = float("inf")
+        early_stop_counter = 0
 
         for epoch in range(num_epochs):
             model.train()
@@ -52,7 +69,8 @@ class ModelHandler:
 
                 running_loss += loss.item()
                 progress_bar.set_postfix(loss=running_loss / (progress_bar.n + 1))
-
+            epoch_loss = running_loss / (progress_bar.n + 1)
+            train_losses.append(epoch_loss)
             # Validation phase
             model.eval()  # Set the model to evaluation mode
             val_running_loss = 0.0
@@ -73,8 +91,21 @@ class ModelHandler:
 
             val_loss = val_running_loss / len(val_loader)  # Average validation loss
             val_accuracy = 100 * correct / total  # Accuracy in percentage
-
+            val_losses.append(val_loss)
             # Update the progress bar description with validation results
+
+            # Save best model
+            if val_loss < best_val_loss:
+                best_val_loss = val_loss
+                early_stop_counter = 0
+                torch.save(model.state_dict(), save_path)
+                print(
+                    f"✅ New best model saved at epoch {epoch+1} with Val Loss: {val_loss:.4f}"
+                )
+            else:
+                early_stop_counter += 1
+                print(f"⚠️ Early stopping counter: {early_stop_counter}/{patience}")
+
             print(
                 f"Epoch {epoch+1}/{num_epochs} - "
                 f"Train Loss: {running_loss / (progress_bar.n + 1):.4f} - "
@@ -82,7 +113,13 @@ class ModelHandler:
                 f"Val Accuracy: {val_accuracy:.2f}%"
             )
 
+            # Check early stopping
+            if early_stop_counter >= patience:
+                print("⏹️ Early stopping triggered. Training stopped.")
+                break
+
         print("Training complete.")
+        return train_losses, val_losses
 
     def test(self, model, test_loader):
         # Set the model to evaluation mode
@@ -104,3 +141,17 @@ class ModelHandler:
                 probabilities.extend(probs.cpu().numpy())
 
         return predictions, probabilities
+
+    def load_model(
+        self,
+        path: str,
+        num_classes: int,
+        backbone_model_family: str = "facebookresearch/dinov2",
+        backbone_model_name: str = "dinov2_vitl14_reg",
+    ):
+        model_state = torch.load(path)
+        model = self.create_model(
+            num_classes, backbone_model_family, backbone_model_name
+        )
+        model.load_state_dict(model_state)
+        return model

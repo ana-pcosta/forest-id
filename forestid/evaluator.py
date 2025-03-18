@@ -8,5 +8,5 @@ from sklearn.metrics import (
 
 def calculate_metrics(df: pd.DataFrame):
     report = classification_report(df["gt"], df["prediction"])
-    conf_matrix = confusion_matrix(df["gt"], df["prediction"])
+    conf_matrix = confusion_matrix(df["gt"], df["prediction"], labels=df["gt"].unique())
     return report, conf_matrix

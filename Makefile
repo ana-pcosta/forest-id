@@ -11,3 +11,6 @@ venv:
 
 update-venv:
 	conda run -n forestid_venv pip install -e .
+
+launch-local:
+	docker compose up --build

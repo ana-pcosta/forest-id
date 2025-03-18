@@ -1,0 +1,19 @@
+services:
+  forestid:
+    build: 
+      context: .
+    volumes: 
+      - ./model:/code/model
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - CUDA_VISIBLE_DEVICES=0
+    ports:
+      - "8050:8050"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    command: conda run -n forestid_venv python /code/app/index.py
