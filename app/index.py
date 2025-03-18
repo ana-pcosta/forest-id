@@ -1,6 +1,7 @@
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
+import dash_bootstrap_components as dbc
 from dash.dependencies import Input, Output
 import numpy as np
 import torch  # Assuming PyTorch model
@@ -15,19 +16,51 @@ from forestid import ROOT_PATH
 
 load_dotenv(".env")
 
+# Initialize Dash app with Bootstrap theme
+app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
 
-app = dash.Dash(__name__)
-
-
-app.layout = html.Div(
+app.layout = dbc.Container(
     [
-        html.H1("Image Classification"),
-        dcc.Upload(
-            id="upload-image", children=html.Button("Upload Image"), multiple=False
+        dbc.Row(
+            dbc.Col(
+                html.H1("🌿 Plant Image Classifier", className="text-center mt-3"),
+                width=12,
+            )
         ),
-        html.Div(id="output-image-upload"),
-        html.H3(id="prediction-output"),
-    ]
+        dbc.Row(
+            dbc.Col(
+                dcc.Upload(
+                    id="upload-image",
+                    children=dbc.Button(
+                        "📂 Upload Image", color="primary", className="mt-3"
+                    ),
+                    multiple=False,
+                    style={"textAlign": "center"},
+                ),
+                width=12,
+                className="text-center",
+            )
+        ),
+        dbc.Row(
+            dbc.Col(
+                dbc.Spinner(
+                    size="lg",
+                    color="primary",
+                    children=[
+                        html.Div(id="output-image-upload", className="text-center mt-4")
+                    ],
+                ),
+                width=12,
+            )
+        ),
+        dbc.Row(
+            dbc.Col(
+                html.H3(id="prediction-output", className="text-center mt-4"),
+                width=12,
+            )
+        ),
+    ],
+    fluid=True,
 )
 
 
@@ -58,6 +91,8 @@ def update_output(contents):
         )
         image = parse_image(contents)
         img_tensor = dataset.transform(image).unsqueeze(0)  # Add batch dimension
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        img_tensor = img_tensor.to(device)
 
         # Run inference
         with torch.no_grad():
@@ -70,13 +105,24 @@ def update_output(contents):
             top_prob, top_class = torch.max(probs, dim=0)
 
         # Get predicted class label
-        predicted_label = classmethod[top_class.item()]
+        predicted_label = dataset.get_class_name(top_class.item())
         confidence = top_prob.item() * 100
 
         # Display uploaded image and prediction
         return [
-            html.Img(src=contents, style={"width": "300px"}),
-            f"Prediction: {predicted_label} ({confidence:.2f}%)",
+            html.Img(
+                src=contents,
+                style={
+                    "width": "300px",
+                    "borderRadius": "10px",
+                    "boxShadow": "0px 4px 10px rgba(0,0,0,0.1)",
+                },
+            ),
+            dbc.Alert(
+                f"Prediction: {predicted_label} ({confidence:.2f}%)",
+                color="success",
+                className="text-center mt-3",
+            ),
         ]
 
 
